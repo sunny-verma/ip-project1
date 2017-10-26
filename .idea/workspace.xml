@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="948987d2-43da-44f5-b226-ecb6329f0ba6" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/peer/client_p0.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/peer/server_p0.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/peer1.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/client_p0.py" afterPath="$PROJECT_DIR$/peer/__init__.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rs_server.py" afterPath="$PROJECT_DIR$/rs_server.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />

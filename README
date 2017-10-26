@@ -1,0 +1,98 @@
+For task one.
+=============
+
+Please Uncomment code from peer1.py as
+# UnComment this for Task1
+for x in range(1, 61):
+    global local_rfc_list
+    title = "RFC %s About something" % x
+    RFC = RFCs(x, title, ['127.0.0.1', port_server])
+    local_rfc_list.append(RFC)
+
+Note: Make sure you don't have below lines in any peers:
+# This is required for Task2
+for x in range(1, 11):
+    global local_rfc_list
+    title = "RFC %s About something" % x
+    RFC = RFCs(x, title, ['127.0.0.1', port_server])
+    local_rfc_list.append(RFC)
+
+
+Now, Copy all the RFCs to peers/peer1rfcs folder. and make sure your don't have anything in peers/peer2rfcs, peers/peer3rfcs, peers/peer4rfcs, peers/peer5rfcs, peers/peer6rfcs folders
+
+Run the system:
+    Please run RS server and peers ( peer1, peer2, peer3, peer4, peer5, peer6)
+    1. run RS server using "python rs_server.py"
+    2. run peers like "python peer1.py" "python peer2.py" and so on .. on different terminals.
+    3. It is a interactive application, so please beer with us and choose the below options.
+        a. Enter 1 for Registering your peer in RS
+
+Once all the peers are registered. Please do following on peer2, peer3, peer4, peer5, peer6
+    Enter 3 for Just PQuery from RS Server:
+    Enter 4 for Just RFCQuery from Active Peers:
+
+Now all the peers peer2, peer3, peer4, peer5, peer6 will have all the RFCs from all the ACtive peers.
+
+To Download the 50 RFCs on peer2, peer3, peer4, peer5, peer6, please do following:
+    Enter 5 for All downloading the RFCs:
+
+you will see for example:
+Time Taken to download one file is  0.0318076187175 -> time take to download one RFC file.
+Count :  1 -> no. of files that have been downloaded so far.
+cumulative time taken:  0.0318076187175 -> cumulative time to download files so far
+
+TASK ONE IS COMPLETE.
+peers/peer2rfcs, peers/peer3rfcs, peers/peer4rfcs, peers/peer5rfcs, peers/peer6rfcs folders will have all 60 Peers from Peer1 :)
+-----------------------
+
+
+
+
+
+For task two.
+=============
+
+Please Uncomment code from peer1.py as
+# Comment this for Task1
+for x in range(1, 61):
+    global local_rfc_list
+    title = "RFC %s About something" % x
+    RFC = RFCs(x, title, ['127.0.0.1', port_server])
+    local_rfc_list.append(RFC)
+
+Note: Make sure you have below lines in all peers which has statment :" This is required for Task2 "
+
+# This is required for Task2
+for x in range(1, 11):
+    global local_rfc_list
+    title = "RFC %s About something" % x
+    RFC = RFCs(x, title, ['127.0.0.1', port_server])
+    local_rfc_list.append(RFC)
+
+
+Now, Copy 10 RFCs to peers/peer1rfcs folder. & do the same for peers/peer2rfcs, peers/peer3rfcs, peers/peer4rfcs, peers/peer5rfcs, peers/peer6rfcs folders
+
+Run the system:
+    Please run RS server and peers ( peer1, peer2, peer3, peer4, peer5, peer6)
+    1. run RS server using "python rs_server.py"
+    2. run peers like "python peer1.py" "python peer2.py" and so on .. on different terminals.
+    3. It is a interactive application, so please beer with us and choose the below options.
+        a. Enter 1 for Registering your peer in RS
+
+Once all the peers are registered. Please do following on peer1, peer2, peer3, peer4, peer5, peer6
+    Enter 3 for Just PQuery from RS Server:
+    Enter 4 for Just RFCQuery from Active Peers:
+
+Now all the peers : peer1, peer2, peer3, peer4, peer5, peer6 will have all the RFCs from all the ACtive peers.
+
+To Download the 50 RFCs on peer1, peer2, peer3, peer4, peer5, peer6, please do following:
+    Enter 5 for All downloading the RFCs:
+
+you will see for example:
+Time Taken to download one file is  0.0318076187175 -> time take to download one RFC file.
+Count :  1 -> no. of files that have been downloaded so far.
+cumulative time taken:  0.0318076187175 -> cumulative time to download files so far
+
+TASK TWO IS COMPLETE
+peers/peer2rfcs, peers/peer2rfcs, peers/peer3rfcs, peers/peer4rfcs, peers/peer5rfcs, peers/peer6rfcs folders will have all 60 Peers
+-----------------------

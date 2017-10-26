@@ -3,28 +3,20 @@ from peers.server_common import MainServer
 import threading, thread
 import socket
 from peers.common import RFCs
-port_server = 9001
-peer_folder = 'peer1rfcs'
+port_server = 9004
+peer_folder = 'peer4rfcs'
 threads = []
 local_rfc_list = []
-'''
-# Comment out this for Task1
-for x in range(1, 61):
+# Comment these value for TASK1
+# This is required for Task2
+for x in range(31, 41):
     global local_rfc_list
     title = "RFC %s About something" % x
     RFC = RFCs(x, title, ['127.0.0.1', port_server])
     local_rfc_list.append(RFC)
 
-'''
-# Comment these value for TASK1
-# This is required for Task2
-for x in range(1, 11):
-    global local_rfc_list
-    title = "RFC %s About something" % x
-    RFC = RFCs(x, title, ['127.0.0.1', port_server])
-    local_rfc_list.append(RFC)
-## Till Here
 print local_rfc_list
+## Till Here
 
 client = Client("127.0.0.1", 65432, port_server=port_server, hostname="127.0.0.1", path=peer_folder, local_rfc_list=local_rfc_list)
 server = MainServer(path=peer_folder)

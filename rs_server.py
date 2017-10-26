@@ -4,7 +4,7 @@ from SocketServer import ThreadingMixIn
 import time
 import sys
 import json
-import threading
+import threading, thread
 ############ Global Variables ###################
 
 # handle the threads in here
@@ -13,6 +13,13 @@ threads = []
 # save the registerd clients info here
 RS_DICT = {}
 
+# This code has to be removed
+'''
+RS_DICT = {('127.0.0.1', 1237): {'hostname': 'Peer4', 'activation_stats': 1, 'peer_server_portnumber': 1237, 'flag': False, 'cookie': 1001, 'time': 1508799811.359, 'ttl': None},
+('127.0.0.1', 1236): {'hostname': 'Peer3', 'activation_stats': 1, 'peer_server_portnumber': 1236, 'flag': True, 'cookie': 1001, 'time': 1508799811.359, 'ttl': None},
+('127.0.0.1', 1235): {'hostname': 'Peer2', 'activation_stats': 1, 'peer_server_portnumber': 1235, 'flag': True, 'cookie': 1001, 'time': 1508799811.359, 'ttl': None},
+('127.0.0.1', 1234): {'hostname': 'Peer1', 'activation_stats': 1, 'peer_server_portnumber': 1234, 'flag': True, 'cookie': 1002, 'time': 1508799811.359, 'ttl': None}}
+'''
 # Lock
 lock = threading.RLock()
 
@@ -24,6 +31,13 @@ TCP_PORT = 65432
 # local variables
 cookie_number = 1000
 
+
+# MSG
+def formulate_msg(msg, cookie = None):
+    if msg == 'OK':
+        MSG = "RESPONSE: 200 OK," + "\n" + "Cookie: " + cookie
+    if msg == 'None':
+        MSG = "RESPONSE: 404," + "\n" + "Din't find the RFC "
 
 ######## Helper methods #################3
 
@@ -38,10 +52,25 @@ def get_entry_from_RS_DICT(tuple):
     return RS_DICT.get(tuple)
 
 
-def dset_entry_from_RS_DICT(tuple , value):
+def set_entry_from_RS_DICT(tuple , value):
     global RS_DICT
     with lock:
         RS_DICT[tuple] = value
+    print RS_DICT
+
+def update_key_from_RS_DICT(tuple , key, value):
+    global RS_DICT
+    if tuple is None:
+        print "This value doesn't exists"
+        return False
+    exists = RS_DICT.get(tuple)
+    if not exists:
+        print "This value doesn't exists"
+        return False
+    with lock:
+        RS_DICT[tuple][key] = value
+    print RS_DICT
+    return True
 
 def delete_entry_from_RS_DICT(tuple):
     global  RS_DICT
@@ -52,28 +81,30 @@ class Handle_Timer():
     pass
 
 time_interval = 0
-def handle_timer(tuple):
-    t = threading.Timer(7200, change_flag_entry(tuple)).start()
 
-def change_flag_entry():
+def change_flag_entry(tuple):
     global RS_DICT, time_interval
-    if time_interval == 0:
-        time_interval =+1
-        return
-    with lock:
-        RS_DICT[tuple]["flag"] = False
+    while True:
+        time.sleep(7200)
+        if time_interval == 0:
+            time_interval =+1
+            return
+        with lock:
+            RS_DICT[tuple]["flag"] = False
 
 
-def convert_data_to_client_info(data):
+def convert_data_to_client_info(data, tuple):
+    global  RS_DICT
 
     data = {"cookie": generate_cookie(),
             "hostname" : data.get("hostname"), # the hostname of the peer
             "flag" : True, #  indicates whether the peer is currently active
-            "ttl": handle_timer(tuple), # timer for the entry
+            "ttl": 7200, # timer for the entry
             "peer_server_portnumber": data.get("peer_server_portnumber"), # to which the RFC server of this peer is listening
             "activation_stats" : 1, #  the number of times this peer has been active
             "time": time.time() # the most recent time/date that the peer registered.
-            }
+    }
+    # thread.start_new_thread(change_flag_entry)
     return data
 
 
@@ -83,38 +114,52 @@ class RSClientHandleThread(Thread):
         self.ip = ip
         self.port = port
         self.conn = conn
+        self.data  = None
 
 
         print "[+] New thread started for " + ip + ":" + str(port)
 
     def run(self):
 
-        data = self.conn.recv(9096)
-        data = json.dumps({'action': 'Register'})
-        self.data = json.loads(data)
+        data = str(self.conn.recv(9096))
+        # data = json.dumps({'action': 'Register'})
+        # self.data = json.loads(data)
         print "received data is :", self.data
 
         # Cases
-        if self.data.get("action") == "Register":
-
+        if data[:8] == "Register":
             # 1. Register
+            print "I am in register case"
+            data = self.conn.recv(4096)
+            if data:
+                self.data = json.loads(data)
+            else:
+                print "something is wrong"
+
             self.Register()
-            return
 
-        if self.data.get("action") == "PQuery":
+
+        elif data[:6]  == "PQuery":
             # 2. PQuery
+            print "I am in PQuery case"
             self.PQuery()
-            return
 
-        if self.data.get("action") == "Leave":
+
+
+        elif data[:5] == "Leave":
             # 3. Leave
-            self.Leave()
-            return
+            print "I am leaving case"
+            data = self.conn.recv(4096)
+            if data:
+                self.data = json.loads(data)
+            else:
+                print "something is wrong"
 
-        if self.data.get("action") == "KeepAlive":
+            self.Leave()
+
+        elif data[:9] == "KeepAlive":
             # 4. KeepAlive
             self.KeepAlive()
-            return
 
     def send_response(self, data):
         self.conn.send(json.dumps(data))
@@ -122,15 +167,9 @@ class RSClientHandleThread(Thread):
     def create_RS_DICT(self, tuple):
         set_entry_from_RS_DICT(tuple, convert_data_to_client_info(self.data, tuple))
 
-    def update_RS_DICT(self, tuple):
-        global  RS_DICT
-        RS_DICT[tuple]["activation_stats"] = RS_DICT[tuple]["activation_stats"] + 1
-        RS_DICT[tuple]["ttl"] = threading.Timer(7200, change_flag_entry(tuple))
-        RS_DICT[tuple]["time"] = time.time()
-        print "DICT", RS_DICT
 
     def Register(self):
-        tuple = (self.ip, self.port)
+        tuple = (self.ip, self.data.get("peer_server_portnumber"))
 
         # 1. Check if the data has cookie value already set ?
         entry_exists = get_entry_from_RS_DICT((self.ip, self.port))
@@ -141,32 +180,65 @@ class RSClientHandleThread(Thread):
         else:
             ## if no, then craete new entry in the registration query
             self.create_RS_DICT(tuple)
-        respose = {"status" : "OK",
-                   "cookie" : get_entry_from_RS_DICT(tuple)}
+        respose = str ("Status: 200 OK, cookie: %s " % int(RS_DICT[tuple].get('cookie')))
         self.send_response(respose)
 
 
 
     def get_active_peers(self):
+        global RS_DICT
+        print RS_DICT
         active_peers = []
-        for key, value in RS_DICT:
-            for k, v in value:
-                if v == True:
-                    active_peer = {"hostname": v.get("hostname"),
-                                   "peer_server_portnumber": v.get('peer_server_portnumber')}
+        for key, value in RS_DICT.items():
+            for k, v in value.items():
+                if value['flag']:
+                    active_peers.append({"hostname": value.get("hostname"),
+                                   "peer_server_portnumber": value.get('peer_server_portnumber')})
+                    break
         return active_peers
 
     def PQuery(self):
         active_peers = self.get_active_peers()
-        self.send_response(json.dumps(active_peers))
+        if active_peers:
+            data = active_peers
+            print "Active Peer list", active_peers
+        else:
+            print "No active peers found in the RS server"
+            data = "404!! Not found"
+        self.send_response(data)
 
     def Leave(self):
-        tuple = (self.ip, self.port)
-        delete_entry_from_RS_DICT(tuple)
+        cookie = int(self.data)
+        ip, port = self.find_tuple(cookie)
+        ret = update_key_from_RS_DICT((ip, port), 'flag', False)
+        if not ret:
+            print "Status: 404 Not Found"
+
+
+            return
+        respose = str("Status: 200 OK, Marked Peer as inactive")
+        self.send_response(respose)
+
 
     def KeepAlive(self):
-        tuple = (self.ip, self.port)
-        self.update_RS_DICT(tuple)
+        data = str(self.conn.recv(1000))
+        print "Cookie Number is %s" % data
+        cookie_number = data[2:]
+        ip, port = self.find_tuple(cookie_number)
+        if ip is None or port is None:
+            return
+        update_key_from_RS_DICT((ip, port), 'flag', True)
+        update_key_from_RS_DICT((ip, port), 'activation_stats', RS_DICT[(ip, port)]["activation_stats"] + 1)
+        update_key_from_RS_DICT((ip, port), 'ttl', 7200)
+        update_key_from_RS_DICT((ip, port), 'time', time.time())
+
+
+    def find_tuple(self, cookie):
+        global RS_DICT
+        for k, v in RS_DICT.items():
+            if v.get("cookie") == cookie:
+                return k, v
+        return None, None
 
 
 def RSServer():
@@ -186,12 +258,10 @@ def RSServer():
         newthread.start()
         threads.append(newthread)
 
-
 def main():
     RSServer()
     for t in threads:
         t.join()
-
 
 if __name__ == "__main__":
     main()
