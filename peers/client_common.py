@@ -35,9 +35,6 @@ class Client(object):
         self.port = 65432 if port is None else port # Reserve a port for your service.
         self.port_server = "9001" if port_server is None else port_server # for your server
         self.hostname = hostname
-
-
-        print "Hello client is connecting to RS server!"
         LOCAL_RFC_LIST = local_rfc_list
         RFC_PATH = path
 
@@ -60,7 +57,7 @@ class Client(object):
                     print "Now we will connect to RS Server and register ourself."
                     s = socket.socket()  # Create a socket object
                     s.connect((self.host, self.port))
-                    print "Connected"
+                    print "Client is connected to RS Server and Registered"
                     my_port_number = self.port_server
                     MSG = "Register Peer"
 
@@ -76,7 +73,7 @@ class Client(object):
                         cookie = server_received_data.split(",")[1][9:13]
                         print "Client got cookie : %s from the server" % cookie
                     s.close()
-                    #TODO(sunnyve ) Handle this later
+
                     thread.start_new_thread(self.send_keep_alive_to_rs)
 
                 # self.RFCQuery(cin)
@@ -118,16 +115,12 @@ class Client(object):
     def get_rfc_from_peers(self, active_peer_list):
         r = []
         global RFC_PEER_LIST, LOCAL_RFC_LIST
-        print "Initially : ", RFC_PEER_LIST, LOCAL_RFC_LIST
-        print "\n"
-        # {"hostname": value.get("hostname"), "peer_server_portnumber": value.get('peer_server_portnumber')}
         for k in active_peer_list:
             if int(self.port_server) != int(k.get('peer_server_portnumber')):
                 rfcs = self.ask_peer_rfc_list(k)
                 r = r + rfcs
         RFC_PEER_LIST = LOCAL_RFC_LIST + r
-        print "Finally RFC LIST : ", RFC_PEER_LIST
-        print "Finally LOCALRFC LIST : ", LOCAL_RFC_LIST
+        print "Finally, After merging RFC PEER LIST : ", RFC_PEER_LIST
         print "\n"
 
     def ask_peer_rfc_list(self, peer_info):
@@ -185,7 +178,7 @@ class Client(object):
             s.connect((self.host, self.port))
             s.send(MSG)
             time.sleep(1)
-            s.send(int(cookie))
+            s.send(cookie)
             s.close()
 
     def handle_rfc_from_rs_server(self):
@@ -237,7 +230,7 @@ class Client(object):
         count_file_sent = 0
         global RFC_PEER_LIST, cumulative_time
         time_cum = 0
-        print "downloading the file from peers"
+        print "Downloading the file from peers"
         for k in RFC_PEER_LIST:
             if int(self.port_server) != int(k.present_list[0][1]):
                 if count_file_sent < 50:
@@ -256,7 +249,7 @@ class Client(object):
 
     def get_the_file(self, peer_ip, peer_port, rfc_number):
         global downloaded_file_path, cumulative_time
-        print "In the get method"
+        print "In the get_the_file method"
         s = socket.socket()
         s.connect((peer_ip, peer_port))
         MSG = formulate_msg(GETRFC, rfcnumber=rfc_number, host=self.hostname )
@@ -267,7 +260,7 @@ class Client(object):
             print "This Peer doesn't have this file."
             return
         if "200" in does_rfc_exists:
-            print "This Peer does have this file. Now it will send the file"
+            print "This Peer does have this file. Now Client will download the file"
 
         file = 'RFC' + str(rfc_number) + '.txt'
         current_dir = os.getcwd()
@@ -289,7 +282,6 @@ class Client(object):
         print "Time Taken to download one file is ", end
         cumulative_time = end
         s.close()
-        print 'connection closed'
 
 
 

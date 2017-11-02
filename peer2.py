@@ -10,6 +10,7 @@ local_rfc_list = []
 
 # Comment these value for TASK1
 # This is required for Task2
+
 for x in range(11, 21):
     global local_rfc_list
     title = "RFC %s About something" % x
@@ -17,6 +18,7 @@ for x in range(11, 21):
     local_rfc_list.append(RFC)
 
 print local_rfc_list
+
 ## Till Here
 
 client = Client("127.0.0.1", 65432, port_server=port_server, hostname="127.0.0.1", path=peer_folder, local_rfc_list=local_rfc_list)
@@ -39,8 +41,8 @@ class myThread (threading.Thread):
       print "Exiting " + self.name
 
 def main():
-    thread1 = myThread(1, "Thread-1", 1, 1)
-    thread2 = myThread(1, "Thread-2", 1, 2)
+    thread1 = myThread(1, "Client Thread", 1, 1)
+    thread2 = myThread(1, "Server Thread", 1, 2)
     thread1.start()
     thread2.start()
 

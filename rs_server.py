@@ -82,9 +82,11 @@ class Handle_Timer():
 
 time_interval = 0
 
-def change_flag_entry(tuple):
+def change_flag_entry(ip=None, port=None):
     global RS_DICT, time_interval
+    tuple = (ip,port)
     while True:
+        print "Starting timer for this entry"
         time.sleep(7200)
         if time_interval == 0:
             time_interval =+1
@@ -104,7 +106,8 @@ def convert_data_to_client_info(data, tuple):
             "activation_stats" : 1, #  the number of times this peer has been active
             "time": time.time() # the most recent time/date that the peer registered.
     }
-    # thread.start_new_thread(change_flag_entry)
+
+    thread.start_new_thread(change_flag_entry, (tuple))
     return data
 
 
@@ -134,10 +137,9 @@ class RSClientHandleThread(Thread):
             if data:
                 self.data = json.loads(data)
             else:
-                print "something is wrong"
+                print "Unable to register with the client"
 
             self.Register()
-
 
         elif data[:6]  == "PQuery":
             # 2. PQuery
@@ -153,8 +155,7 @@ class RSClientHandleThread(Thread):
             if data:
                 self.data = json.loads(data)
             else:
-                print "something is wrong"
-
+                print "MSG received was wrong for leaving"
             self.Leave()
 
         elif data[:9] == "KeepAlive":
@@ -209,8 +210,8 @@ class RSClientHandleThread(Thread):
 
     def Leave(self):
         cookie = int(self.data)
-        ip, port = self.find_tuple(cookie)
-        ret = update_key_from_RS_DICT((ip, port), 'flag', False)
+        tuple, value = self.find_tuple(cookie)
+        ret = update_key_from_RS_DICT(tuple, 'flag', False)
         if not ret:
             print "Status: 404 Not Found"
 
@@ -222,15 +223,16 @@ class RSClientHandleThread(Thread):
 
     def KeepAlive(self):
         data = str(self.conn.recv(1000))
+        print "Keep Alive Triggered"
         print "Cookie Number is %s" % data
-        cookie_number = data[2:]
-        ip, port = self.find_tuple(cookie_number)
-        if ip is None or port is None:
+        cookie_number = int(data)
+        tuple, value = self.find_tuple(cookie_number)
+        if value is None:
             return
-        update_key_from_RS_DICT((ip, port), 'flag', True)
-        update_key_from_RS_DICT((ip, port), 'activation_stats', RS_DICT[(ip, port)]["activation_stats"] + 1)
-        update_key_from_RS_DICT((ip, port), 'ttl', 7200)
-        update_key_from_RS_DICT((ip, port), 'time', time.time())
+        update_key_from_RS_DICT(tuple, 'flag', True)
+        update_key_from_RS_DICT(tuple, 'activation_stats', RS_DICT[tuple]["activation_stats"] + 1)
+        update_key_from_RS_DICT(tuple, 'ttl', 7200)
+        update_key_from_RS_DICT(tuple, 'time', time.time())
 
 
     def find_tuple(self, cookie):

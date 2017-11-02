@@ -78,7 +78,7 @@ class PeerServerHandleThread(threading.Thread):
     def sendfile(self, conn, rfc_number):
         exists, filename = self.check_rfc_exists_locally(rfc_number)
         if not exists or not os.path.exists(filename):
-            print "What the hell you are trying to send!!"
+            print "Peer doesn't have the file so can't send anything!!"
             MSG = formulate_msg("None")
             conn.send(MSG)
 
